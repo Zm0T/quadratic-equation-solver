@@ -1,45 +1,42 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <vector>
+#include <sstream>   // Для использования std::ostringstream
+#include <iomanip>   // Для std::fixed и std::setprecision
 using namespace std;
 
 // Родительский класс
 class QuadraticEquation {
 public:
-    double A;
-    double B;
-    double C;
+    double A, B, C;
 
-    // Конструктор родительского класса
     QuadraticEquation(double a = 0, double b = 0, double c = 0) : A(a), B(b), C(c) {}
 
-    void showEquation() {
-        string equation = "";
+    void showEquation() const {
+        std::ostringstream stream;
+        stream << std::fixed;
 
         if (A != 0) {
-            equation += to_string(A) + "x^2 ";
+            stream << std::setprecision(A == floor(A) ? 0 : 2) << A << "x^2 ";
         }
         if (B != 0) {
-            if (B > 0 && !equation.empty()) {
-                equation += "+ ";
-            }
-            equation += to_string(B) + "x ";
+            if (B > 0 && !stream.str().empty()) stream << "+ ";
+            stream << std::setprecision(B == floor(B) ? 0 : 2) << B << "x ";
         }
         if (C != 0) {
-            if (C > 0 && !equation.empty()) {
-                equation += "+ ";
-            }
-            equation += to_string(C);
+            if (C > 0 && !stream.str().empty()) stream << "+ ";
+            stream << std::setprecision(C == floor(C) ? 0 : 2) << C;
         }
 
-        if (equation.empty()) {
+        if (stream.str().empty()) {
             cout << "0 = 0" << endl;
-        }
-        else {
-            cout << "Итоговое уравнение: " << equation << " = 0" << endl;
+        } else {
+            cout << "Итоговое уравнение: " << stream.str() << " = 0" << endl;
         }
     }
 };
+
 
 // 8 дочерних классов
 class FirstQuadraticEquation : public QuadraticEquation {
@@ -72,17 +69,32 @@ public:
 class FourthQuadraticEquation : public QuadraticEquation {
 public:
     double x_1, x_2;
-    FourthQuadraticEquation(double a, double b, double c) : QuadraticEquation(a, b, c) {
-        x_1 = sqrt(static_cast<double>(C) / A);
-        x_2 = -sqrt(static_cast<double>(C) / A);
+    bool areComplex;
+    FourthQuadraticEquation(double a, double b, double c) : QuadraticEquation(a, b, c), areComplex(false) {
+        if (A == 0) {
+            cout << "Не квадратное уравнение." << endl;
+        } else {
+            double temp = static_cast<double>(C) / A;
+            if (temp < 0) {
+                areComplex = true;
+            } else {
+                x_1 = sqrt(temp);
+                x_2 = -sqrt(temp);
+            }
+        }
     }
 
     void showAnswer() {
-        cout << "Данное квадратное уравнение имеет 2 корня:" << endl;
-        cout << "Первый корень: " << x_1 << endl;
-        cout << "Второй корень: " << x_2 << endl;
+        if (areComplex) {
+            cout << "Уравнение имеет комплексные корни." << endl;
+        } else {
+            cout << "Данное квадратное уравнение имеет 2 корня:" << endl;
+            cout << "Первый корень: " << x_1 << endl;
+            cout << "Второй корень: " << x_2 << endl;
+        }
     }
 };
+
 
 class FifthQuadraticEquation : public QuadraticEquation {
 public:
@@ -99,31 +111,35 @@ public:
 class SixthQuadraticEquation : public QuadraticEquation {
 public:
     double discriminant, x_1, x_2;
-    SixthQuadraticEquation(double a, double b, double c) : QuadraticEquation(a, b, c) {
+    bool isComplex;
+
+    SixthQuadraticEquation(double a, double b, double c) : QuadraticEquation(a, b, c), isComplex(false) {
         discriminant = B * B - 4 * A * C;
         if (discriminant > 0) {
             x_1 = (-B + sqrt(discriminant)) / (2 * A);
             x_2 = (-B - sqrt(discriminant)) / (2 * A);
-        }
-        else if (discriminant == 0) {
-            x_1 = (-B) / (2 * A);
+        } else if (discriminant == 0) {
+            x_1 = x_2 = -B / (2 * A);
+        } else {
+            isComplex = true;
+            x_1 = -B / (2 * A);
+            x_2 = sqrt(-discriminant) / (2 * A);
         }
     }
 
     void showAnswer() {
-        if (discriminant > 0) {
-            cout << "Данное квадратное уравнение имеет следующие корни" << endl;
+        if (isComplex) {
+            cout << "Данное квадратное уравнение имеет комплексные корни:" << endl;
+            cout << "x1 = " << x_1 << " + " << x_2 << "i" << endl;
+            cout << "x2 = " << x_1 << " - " << x_2 << "i" << endl;
+        } else if (discriminant >= 0) {
+            cout << "Данное квадратное уравнение имеет следующие корни:" << endl;
             cout << "Первый корень: " << x_1 << endl;
             cout << "Второй корень: " << x_2 << endl;
         }
-        else if (discriminant == 0) {
-            cout << "Данное квадратное уравнение имеет одно единственное решение при x = " << x_1 << endl;
-        }
-        else if (discriminant < 0) {
-            cout << "Данное квадратное уравнение не имеет корней" << endl;
-        }
     }
 };
+
 
 class SeventhQuadraticEquation : public QuadraticEquation {
 public:
@@ -148,6 +164,62 @@ public:
     }
 };
 
+void userChoose();
+void userValues(QuadraticEquation& equation);
+void programLogic(vector<QuadraticEquation>& history, int& historyIndex);
+void secondUserChoose();
+void showHistory(const vector<QuadraticEquation>& history, int historyIndex);
+void manual();
+
+int main() {
+    int start = 0;
+    bool readInstructions = false; // Флаг, указывающий, была ли показана инструкция
+    vector<QuadraticEquation> history; // Вектор для хранения истории
+    int historyIndex = 0; // Индекс для текущего запроса в истории
+
+    while (true) {
+        if (!readInstructions) {
+            manual(); // Показываем инструкцию только если она еще не была показана
+            readInstructions = true;
+        }
+        cin >> start;
+        if (start == 1) {
+            int choose = 0;
+            while (choose != 3) {
+                userChoose();
+                cin >> choose;
+
+                switch (choose) {
+                    case 1: {
+                        int secondChoose = 1; // Устанавливаем значение по умолчанию для продолжения цикла
+                        while (secondChoose == 1) {
+                            programLogic(history, historyIndex); // Решение уравнения
+                            secondUserChoose(); // Меню после решения уравнения
+                            cin >> secondChoose;
+                        }
+                        break;
+                    }
+                    case 2:
+                        showHistory(history, historyIndex);
+                        break;
+                    case 3:
+                        break;
+                    default:
+                        cout << "Данного пункта не существует, попробуйте еще раз" << endl;
+                        break;
+                }
+            }
+            break; // Выходим из бесконечного цикла после успешного запуска программы
+        }
+        else {
+            cout << "Ознакомьтесь с инструкцией еще раз и введите цифру 1" << endl;
+        }
+    }
+
+    return 0;
+}
+
+
 // Меню выбора
 void userChoose() {
     cout << "----------------------------------------" << endl;
@@ -164,48 +236,45 @@ void userChoose() {
 // Ввод пользователем коэффиценты
 void userValues(QuadraticEquation& equation) {
     double A, B, C;
-    char nextChar; // Для проверки на букву после числа
-    cout << "----------------------------------------" << endl;
+    char nextChar;
     cout << "Введите коэффициенты A, B и C: " << endl;
     cout << "Коэффициент A: ";
     while (!(cin >> A)) {
-        cout << "Ошибка: введите целое число для коэффициента A: ";
-        cin.clear(); // Сбросить ошибку ввода
-        while ((nextChar = cin.get()) != '\n' && nextChar != EOF); // Проигнорировать оставшуюся часть ввода до символа новой строки
+        cout << "Ошибка: введите число для коэффициента A: ";
+        cin.clear();
+        while ((nextChar = cin.get()) != '\n' && nextChar != EOF);
     }
     cout << "Коэффициент B: ";
     while (!(cin >> B)) {
-        cout << "Ошибка: введите целое число для коэффициента B: ";
+        cout << "Ошибка: введите число для коэффициента B: ";
         cin.clear();
         while ((nextChar = cin.get()) != '\n' && nextChar != EOF);
     }
     cout << "Коэффициент C: ";
     while (!(cin >> C)) {
-        cout << "Ошибка: введите целое число для коэффициента C: ";
+        cout << "Ошибка: введите число для коэффициента C: ";
         cin.clear();
         while ((nextChar = cin.get()) != '\n' && nextChar != EOF);
     }
-    cout << "----------------------------------------" << endl;
     equation = QuadraticEquation(A, B, C);
 }
 
-void programLogic(QuadraticEquation history[], int& historyIndex) {
 
-    const int historySize = 20;
-
-    int secondChoose = 0;
-
-    QuadraticEquation eq; // Создаем объект класса QuadraticEquation
-
-    userValues(eq); // Вызываем функцию для ввода коэффициентов
-
-    eq.showEquation();
+void programLogic(vector<QuadraticEquation>& history, int& historyIndex) {
+    QuadraticEquation eq;
+    userValues(eq); // Получаем значения от пользователя
+    eq.showEquation(); // Показываем уравнение
 
     // Добавление запроса в историю
-    history[historyIndex] = eq;
-    if (++historyIndex >= historySize) {
-        historyIndex = 0; // Сбрасываем индекс, если достигли конца истории
+    if (history.size() < 20) {
+        history.push_back(eq);
+    } else {
+        // Если история полна, удаляем самый старый элемент и добавляем новый
+        history.erase(history.begin());
+        history.push_back(eq);
     }
+
+    historyIndex = (historyIndex + 1) % 20; // Обновляем индекс
 
     if (eq.A == 0 && eq.B == 0 && eq.C == 0) {
         FirstQuadraticEquation eq_1(eq.A, eq.B, eq.C);
@@ -242,7 +311,6 @@ void programLogic(QuadraticEquation history[], int& historyIndex) {
 }
 
 
-
 // Меню после решения квадратного уравнения
 void secondUserChoose() {
     cout << "----------------------------------------" << endl;
@@ -253,20 +321,16 @@ void secondUserChoose() {
     cout << "----------------------------------------" << endl;
 }
 
-void showHistory(QuadraticEquation history[], int historyIndex) {
-    const int historySize = 20;
-    int startIndex = (historyIndex >= historySize) ? (historyIndex % historySize) : 0;
-
+void showHistory(const vector<QuadraticEquation>& history, int historyIndex) {
     cout << "----------------------------------------" << endl;
     cout << "|            История запросов:         |" << endl;
-    for (int i = 0; i < historySize; ++i) {
-        int index = (startIndex + i) % historySize;
+    for (int i = 0; i < history.size(); ++i) {
         cout << "|   Запрос " << (i + 1) << ": ";
-        history[index].showEquation();
+        history[i].showEquation(); // Показываем каждое уравнение в истории
     }
     cout << "----------------------------------------" << endl;
-
 }
+
 
 void manual() {
     cout << "----------------------------------------" << endl;
@@ -307,56 +371,4 @@ void manual() {
     cout << "   - После завершения программы вы можете повторно запустить ее для решения новых уравнений или просмотра истории запросов." << endl;
     cout << "----------------------------------------" << endl;
     cout << "Для продолжения введите цифру 1" << endl;
-}
-
-int main() {
-    int start = 0;
-    bool readInstructions = false; // Флаг, указывающий, была ли показана инструкция
-
-    while (true) {
-        if (!readInstructions) {
-            manual(); // Показываем инструкцию только если она еще не была показана
-            readInstructions = true;
-        }
-        cin >> start;
-        if (start == 1) {
-            int choose = 0;
-            const int historySize = 20;
-            QuadraticEquation history[historySize];
-            int historyIndex = 0;
-
-            // Первичный вывод меню
-            while (choose != 3) {
-                userChoose();
-                cin >> choose;
-
-                switch (choose) {
-                    case 1: {
-                        int secondChoose = 1; // Устанавливаем значение по умолчанию для продолжения цикла
-                        while (secondChoose == 1) {
-                            programLogic(history, historyIndex); // Решение уравнения
-                            secondUserChoose(); // Меню после решения уравнения
-                            cin >> secondChoose;
-                        }
-                        break;
-                    }
-                    case 2:
-                        showHistory(history, historyIndex);
-
-                        break;
-                    case 3:
-                        break;
-                    default:
-                        cout << "Данного пункта не существует, попробуйте еще раз" << endl;
-                        break;
-                }
-            }
-            break; // Выходим из бесконечного цикла после успешного запуска программы
-        }
-        else {
-            cout << "Ознакомьтесь с инструкцией еще раз и введите цифру 1" << endl;
-        }
-    }
-
-    return 0;
 }
