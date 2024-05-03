@@ -1,12 +1,13 @@
-#include <iostream>
+﻿#include <iostream>
 #include <string>
 #include <cmath>
 #include <vector>
-#include <sstream>   // Для использования std::ostringstream
-#include <iomanip>   // Для std::fixed и std::setprecision
+#include <sstream>
+#include <iomanip>
+#include <cstdlib>
 using namespace std;
 
-// Родительский класс
+// Parent class
 class QuadraticEquation {
 public:
     double A, B, C;
@@ -31,14 +32,15 @@ public:
 
         if (stream.str().empty()) {
             cout << "0 = 0" << endl;
-        } else {
+        }
+        else {
             cout << "Итоговое уравнение: " << stream.str() << " = 0" << endl;
         }
     }
 };
 
 
-// 8 дочерних классов
+// 8 child classes
 class FirstQuadraticEquation : public QuadraticEquation {
 public:
     FirstQuadraticEquation(double a, double b, double c) : QuadraticEquation(a, b, c) {}
@@ -73,11 +75,13 @@ public:
     FourthQuadraticEquation(double a, double b, double c) : QuadraticEquation(a, b, c), areComplex(false) {
         if (A == 0) {
             cout << "Не квадратное уравнение." << endl;
-        } else {
+        }
+        else {
             double temp = static_cast<double>(C) / A;
             if (temp < 0) {
                 areComplex = true;
-            } else {
+            }
+            else {
                 x_1 = sqrt(temp);
                 x_2 = -sqrt(temp);
             }
@@ -87,14 +91,14 @@ public:
     void showAnswer() {
         if (areComplex) {
             cout << "Уравнение имеет комплексные корни." << endl;
-        } else {
+        }
+        else {
             cout << "Данное квадратное уравнение имеет 2 корня:" << endl;
             cout << "Первый корень: " << x_1 << endl;
             cout << "Второй корень: " << x_2 << endl;
         }
     }
 };
-
 
 class FifthQuadraticEquation : public QuadraticEquation {
 public:
@@ -118,9 +122,11 @@ public:
         if (discriminant > 0) {
             x_1 = (-B + sqrt(discriminant)) / (2 * A);
             x_2 = (-B - sqrt(discriminant)) / (2 * A);
-        } else if (discriminant == 0) {
+        }
+        else if (discriminant == 0) {
             x_1 = x_2 = -B / (2 * A);
-        } else {
+        }
+        else {
             isComplex = true;
             x_1 = -B / (2 * A);
             x_2 = sqrt(-discriminant) / (2 * A);
@@ -132,14 +138,14 @@ public:
             cout << "Данное квадратное уравнение имеет комплексные корни:" << endl;
             cout << "x1 = " << x_1 << " + " << x_2 << "i" << endl;
             cout << "x2 = " << x_1 << " - " << x_2 << "i" << endl;
-        } else if (discriminant >= 0) {
+        }
+        else if (discriminant >= 0) {
             cout << "Данное квадратное уравнение имеет следующие корни:" << endl;
             cout << "Первый корень: " << x_1 << endl;
             cout << "Второй корень: " << x_2 << endl;
         }
     }
 };
-
 
 class SeventhQuadraticEquation : public QuadraticEquation {
 public:
@@ -170,46 +176,99 @@ void programLogic(vector<QuadraticEquation>& history, int& historyIndex);
 void secondUserChoose();
 void showHistory(const vector<QuadraticEquation>& history, int historyIndex);
 void manual();
+void about();
+
+// Function to check if a string is a number
+bool isNumber(const std::string& s) {
+    for (int i = 0; i < s.length(); i++) {
+        if (!isdigit(s[i])) { // Check if each character is a digit
+            return false;
+        }
+    }
+    return true;
+}
+
+// Function to get a numeric value from the user
+int getNumberFromUser() {
+    std::string input;
+    while (true) {
+        getline(std::cin, input); // Read the line
+        if (isNumber(input)) {
+            int number = stoi(input); // Convert the string to an integer
+            if (number >= 1) { // Additionally check that the number is not negative
+                return number;
+            }
+        }
+        cout << "Ошибка: Введено некорректное значение. Попробуйте еще раз.\n";
+    }
+}
+
 
 int main() {
+    setlocale(LC_ALL, "Russian");
     int start = 0;
-    bool readInstructions = false; // Флаг, указывающий, была ли показана инструкция
-    vector<QuadraticEquation> history; // Вектор для хранения истории
-    int historyIndex = 0; // Индекс для текущего запроса в истории
+    bool readInstructions = false; // Flag indicating whether the instruction was shown
+    vector<QuadraticEquation> history; // Vector for storing history
+    int historyIndex = 0; // Index for the current request in history
 
     while (true) {
         if (!readInstructions) {
-            manual(); // Показываем инструкцию только если она еще не была показана
+            manual(); // Show the instruction only if it has not already been shown
             readInstructions = true;
         }
-        cin >> start;
+        start = getNumberFromUser(); // Request a number from the user
         if (start == 1) {
+            system("cls");
             int choose = 0;
-            while (choose != 3) {
+            while (choose != 4) {
                 userChoose();
-                cin >> choose;
+                choose = getNumberFromUser(); // Request a number from the user
 
                 switch (choose) {
-                    case 1: {
-                        int secondChoose = 1; // Устанавливаем значение по умолчанию для продолжения цикла
-                        while (secondChoose == 1) {
-                            programLogic(history, historyIndex); // Решение уравнения
-                            secondUserChoose(); // Меню после решения уравнения
-                            cin >> secondChoose;
-                        }
-                        break;
+                case 1: {
+                    int secondChoose = 1;
+                    while (secondChoose == 1) {
+                        programLogic(history, historyIndex); // Solving the equation
+                        secondUserChoose(); // Menu after solving the equation
+                        secondChoose = getNumberFromUser();
+                        system("cls");
                     }
-                    case 2:
-                        showHistory(history, historyIndex);
-                        break;
-                    case 3:
-                        break;
-                    default:
-                        cout << "Данного пункта не существует, попробуйте еще раз" << endl;
-                        break;
+                    break;
+                }
+                case 2:
+                    showHistory(history, historyIndex);
+                    cout << "Введите 1, чтобы вернуться к начальному меню: ";
+                    while (true) {
+                        int returnToMenu = getNumberFromUser();
+                        if (returnToMenu == 1) {
+                            break;
+                        }
+                        else {
+                            cout << "Ошибка: Введите 1, чтобы вернуться к начальному меню." << endl;
+                        }
+                    }
+                    system("cls");
+                    break;
+                case 3:
+                    about();
+                    cout << "Введите 1, чтобы вернуться к начальному меню: ";
+                    while (true) {
+                        int returnToMainMenu = getNumberFromUser();
+                        if (returnToMainMenu == 1) {
+                            break;
+                        }
+                        else {
+                            cout << "Ошибка: Введите 1, чтобы вернуться к начальному меню." << endl;
+                        }
+                    }
+                    system("cls");
+                    break;
+                default:
+                    cout << "Данного пункта не существует, попробуйте еще раз" << endl;
+                    break;
                 }
             }
-            break; // Выходим из бесконечного цикла после успешного запуска программы
+            break; // Exit the endless loop after successfully running the program
         }
         else {
             cout << "Ознакомьтесь с инструкцией еще раз и введите цифру 1" << endl;
@@ -220,61 +279,115 @@ int main() {
 }
 
 
-// Меню выбора
+
+
+// Selection menu
 void userChoose() {
     cout << "----------------------------------------" << endl;
     cout << "|          Решатель квадратных         |" << endl;
-    cout << "|            уравнений v3.3            |" << endl;
+    cout << "|            уравнений v4.2            |" << endl;
     cout << "----------------------------------------" << endl;
     cout << "|   Выберите действие:                 |" << endl;
     cout << "|   1. Решить квадратное уравнение     |" << endl;
     cout << "|   2. История запросов                |" << endl;
-    cout << "|   3. Завершить программу             |" << endl;
+    cout << "|   3. О приложении                    |" << endl;
+    cout << "|   4. Завершить программу             |" << endl;
     cout << "----------------------------------------" << endl;
 }
 
-// Ввод пользователем коэффиценты
+// User input coefficients
 void userValues(QuadraticEquation& equation) {
     double A, B, C;
     char nextChar;
+    string input;
+
     cout << "Введите коэффициенты A, B и C: " << endl;
+
+    // Enter coefficient A
     cout << "Коэффициент A: ";
-    while (!(cin >> A)) {
-        cout << "Ошибка: введите число для коэффициента A: ";
-        cin.clear();
-        while ((nextChar = cin.get()) != '\n' && nextChar != EOF);
+    while (true) {
+        getline(cin, input); // Read the line
+        size_t comma_pos = input.find(','); // Search for a comma in a string
+        if (comma_pos != string::npos) {
+            input[comma_pos] = '.'; // Replace comma with dot
+        }
+        stringstream ss(input);
+        if (ss >> A && ss.eof()) { // Check if the input is a number
+            equation.A = A;
+            break;
+        }
+        cout << "Ошибка: введите корректное число для коэффициента A: ";
     }
+
+    // Enter coefficient B
     cout << "Коэффициент B: ";
-    while (!(cin >> B)) {
-        cout << "Ошибка: введите число для коэффициента B: ";
-        cin.clear();
-        while ((nextChar = cin.get()) != '\n' && nextChar != EOF);
+    while (true) {
+        getline(cin, input); // Read the line
+        size_t comma_pos = input.find(','); // Search for a comma in a string
+        if (comma_pos != string::npos) {
+            input[comma_pos] = '.'; // Replace comma with dot
+        }
+        stringstream ss(input);
+        if (ss >> B && ss.eof()) { // Check if the input is a number
+            equation.B = B;
+            break;
+        }
+        cout << "Ошибка: введите корректное число для коэффициента B: ";
     }
+
+    // Enter coefficient C
     cout << "Коэффициент C: ";
-    while (!(cin >> C)) {
-        cout << "Ошибка: введите число для коэффициента C: ";
-        cin.clear();
-        while ((nextChar = cin.get()) != '\n' && nextChar != EOF);
+    while (true) {
+        getline(cin, input); // Read the line
+        size_t comma_pos = input.find(','); // Search for a comma in a string
+        if (comma_pos != string::npos) {
+            input[comma_pos] = '.'; // Replace comma with dot
+        }
+        stringstream ss(input);
+        if (ss >> C && ss.eof()) { // Check if the input is a number
+            equation.C = C;
+            break;
+        }
+        cout << "Ошибка: введите корректное число для коэффициента C: ";
     }
-    equation = QuadraticEquation(A, B, C);
 }
 
 
+
+void drawGraph(const QuadraticEquation& equation) {
+    // Get coefficients from an object of the Quadratic Equation class
+    double A = equation.A;
+    double B = equation.B;
+    double C = equation.C;
+
+    // send data to python function
+    std::string command = "python link/draw_graph.py " + std::to_string(A) + " " + std::to_string(B) + " " + std::to_string(C);
+
+    // Call the Python script
+    int result = std::system(command.c_str());
+
+    // Check the result of the call
+    if (result != 0) {
+        std::cerr << "Ошибка: Не удалось вызвать скрипт для построения графика." << std::endl;
+    }
+}
+
 void programLogic(vector<QuadraticEquation>& history, int& historyIndex) {
     QuadraticEquation eq;
-    userValues(eq); // Получаем значения от пользователя
-    eq.showEquation(); // Показываем уравнение
+    userValues(eq); // Get values from the user
+    eq.showEquation(); // Show the equation
 
-    // Добавление запроса в историю
+    // Adding a request to history
     if (history.size() < 20) {
         history.push_back(eq);
-    } else {
-        // Если история полна, удаляем самый старый элемент и добавляем новый
+    }
+    else {
+        // If the history is full, remove the oldest element and add a new one
         history.erase(history.begin());
         history.push_back(eq);
     }
 
-    historyIndex = (historyIndex + 1) % 20; // Обновляем индекс
+    historyIndex = (historyIndex + 1) % 20;
 
     if (eq.A == 0 && eq.B == 0 && eq.C == 0) {
         FirstQuadraticEquation eq_1(eq.A, eq.B, eq.C);
@@ -291,22 +404,27 @@ void programLogic(vector<QuadraticEquation>& history, int& historyIndex) {
     else if (eq.A != 0 && eq.B == 0 && eq.C != 0) {
         FourthQuadraticEquation eq_4(eq.A, eq.B, eq.C);
         eq_4.showAnswer();
+        drawGraph(eq);
     }
     else if (eq.A == 0 && eq.B != 0 && eq.C != 0) {
         FifthQuadraticEquation eq_5(eq.A, eq.B, eq.C);
         eq_5.showAnswer();
+        drawGraph(eq);
     }
     else if (eq.A != 0 && eq.B != 0 && eq.C != 0) {
         SixthQuadraticEquation eq_6(eq.A, eq.B, eq.C);
         eq_6.showAnswer();
+        drawGraph(eq);
     }
     else if (eq.A == 0 && eq.B != 0 && eq.C == 0) {
         SeventhQuadraticEquation eq_7(eq.A, eq.B, eq.C);
         eq_7.showAnswer();
+        drawGraph(eq);
     }
     else {
         EighthQuadraticEquation eq_8(eq.A, eq.B, eq.C);
         eq_8.showAnswer();
+        drawGraph(eq);
     }
 }
 
@@ -326,7 +444,7 @@ void showHistory(const vector<QuadraticEquation>& history, int historyIndex) {
     cout << "|            История запросов:         |" << endl;
     for (int i = 0; i < history.size(); ++i) {
         cout << "|   Запрос " << (i + 1) << ": ";
-        history[i].showEquation(); // Показываем каждое уравнение в истории
+        history[i].showEquation(); // Show each equation in history
     }
     cout << "----------------------------------------" << endl;
 }
@@ -336,39 +454,60 @@ void manual() {
     cout << "----------------------------------------" << endl;
     cout << "|    Инструкция по эксплуатации        |" << endl;
     cout << "|      программы для решения           |" << endl;
-    cout << "|        квадратных уравнений          |" << endl;
+    cout << "|        квадратных уравнений v4.3     |" << endl;
     cout << "----------------------------------------" << endl;
     cout << "1. Выбор действия:" << endl;
     cout << "   - Главное меню предлагает три действия:" << endl;
-    cout << "     - Решить квадратное уравнение." << endl;
-    cout << "     - Посмотреть историю запросов." << endl;
-    cout << "     - Завершить программу." << endl;
+    cout << "     1. Решить квадратное уравнение." << endl;
+    cout << "     2. Посмотреть историю запросов." << endl;
+    cout << "     3. Завершить программу." << endl;
     cout << endl;
     cout << "2. Решение квадратного уравнения:" << endl;
-    cout << "   - Выберите действие \"Решить квадратное уравнение\" (введите \"1\")." << endl;
-    cout << "   - Введите значения коэффициентов квадратного уравнения: A, B и C." << endl;
-    cout << "   - Ввод дробных коэффициентов производится через точку." << endl;
-    cout << "   - Программа решит уравнение и выведет его на экран." << endl;
+    cout << "   - Выберите действие \"Решить квадратное уравнение\" (введите '1')." << endl;
+    cout << "   - Введите значения коэффициентов квадратного уравнения A, B, и C." << endl;
+    cout << "   - Ввод дробных чисел должен производиться с использованием точки (например, 3.14)." << endl;
+    cout << "   - После ввода коэффициентов программа рассчитает и выведет на экран результат." << endl;
     cout << "   - Затем будет предложено выбрать следующее действие:" << endl;
-    cout << "     - Ввести новые коэффициенты." << endl;
-    cout << "     - Вернуться к главному меню." << endl;
+    cout << "     - Ввести новые коэффициенты (введите '1')." << endl;
+    cout << "     - Вернуться к главному меню (введите '2')." << endl;
     cout << endl;
     cout << "3. Просмотр истории запросов:" << endl;
-    cout << "   - Выберите действие \"История запросов\" (введите \"2\")." << endl;
-    cout << "   - Программа выведет на экран историю последних 20 запросов с коэффициентами квадратных уравнений." << endl;
+    cout << "   - Выберите действие \"История запросов\" (введите '2')." << endl;
+    cout << "   - Программа выведет на экран историю последних 20 запросов с коэффициентами квадратных уравнений и результатами их решений." << endl;
     cout << endl;
     cout << "4. Завершение программы:" << endl;
-    cout << "   - Если вы хотите завершить программу, выберите действие \"Завершить программу\" (введите \"3\")." << endl;
+    cout << "   - Если вы хотите завершить программу, выберите действие \"Завершить программу\" (введите '3')." << endl;
     cout << endl;
     cout << "5. Ошибки ввода:" << endl;
-    cout << "   - В случае некорректного ввода (например, ввод буквы вместо числа) программа сообщит об ошибке и попросит ввести значение снова." << endl;
+    cout << "   - В случае некорректного ввода (например, ввод буквы вместо числа) программа сообщит об ошибке и попросит ввести значение заново." << endl;
     cout << endl;
     cout << "6. Дополнительные функции:" << endl;
-    cout << "   - При решении квадратного уравнения программа определяет тип уравнения и его корни." << endl;
-    cout << "   - В истории запросов отображается последние 20 введенных уравнений." << endl;
+    cout << "   - При решении квадратного уравнения программа определяет тип уравнения и его корни, а также может отобразить график уравнения." << endl;
+    cout << "   - В истории запросов отображаются последние 20 введенных уравнений с их корнями или указанием на их отсутствие." << endl;
     cout << endl;
     cout << "7. Повторный запуск:" << endl;
     cout << "   - После завершения программы вы можете повторно запустить ее для решения новых уравнений или просмотра истории запросов." << endl;
     cout << "----------------------------------------" << endl;
     cout << "Для продолжения введите цифру 1" << endl;
+}
+
+void about() {
+    cout << "----------------------------------------" << endl;
+    cout << "|           О программе                |" << endl;
+    cout << "----------------------------------------" << endl;
+    cout << "Данное приложение разработано в рамках курсовой работы на тему:" << endl;
+    cout << "\"Решатель квадратных уравнений\"." << endl;
+    cout << endl;
+    cout << "Основная функция программы заключается в возможности решения" << endl;
+    cout << "квадратных уравнений, визуализации результатов и хранения истории запросов." << endl;
+    cout << endl;
+    cout << "Программа написана на языке C++ и имеет открытый исходный код." << endl;
+    cout << "Исходный код доступен для просмотра и скачивания на GitHub по ссылке:" << endl;
+    cout << "https://github.com/Zm0T/quadratic-equation-solver" << endl;
+    cout << endl;
+    cout << "Этот проект представляет собой отличный ресурс для обучения и" << endl;
+    cout << "демонстрации принципов программирования и математических вычислений." << endl;
+    cout << endl;
+    cout << "Автор: ZmoT" << endl;
+    cout << "----------------------------------------" << endl;
 }
